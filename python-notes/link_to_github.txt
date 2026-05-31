@@ -1,0 +1,6 @@
+cd /d D:\python_learn
+git remote -v
+git add .
+git status
+git commit -m "Add new note"
+git push -u origin learn_notebook

@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <meta name="color-scheme" content="light dark">
+  <title>单词学习日志 · 快捷键版</title>
+  <style>
+    :root {
+      color-scheme: light dark;
+      --primary-color: #4a90e2;
+      --secondary-color: #f39c12;
+      --danger-color: #e74c3c;
+      --bg-color: #f0f2f5;
+      --surface-color: #ffffff;
+      --surface-muted: #f8fafc;
+      --surface-soft: #f1f5f9;
+      --surface-soft-strong: #e2e8f0;
+      --text-color: #333333;
+      --text-muted: #64748b;
+      --text-strong: #1e293b;
+      --border-color: #e9eef2;
+      --heading-bg: #f9fbfd;
+      --heading-text: #4b5563;
+      --danger-soft: #fee2e2;
+      --shadow-color: rgba(0,0,0,0.08);
+      --shadow-soft: rgba(0,0,0,0.02);
+      --panel-overlay: rgba(255,255,255,0.8);
+      --cell-focus: #e6f0ff;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --primary-color: #6aa8ff;
+        --secondary-color: #f5b041;
+        --danger-color: #ff7b72;
+        --bg-color: #0f172a;
+        --surface-color: #111827;
+        --surface-muted: #1f2937;
+        --surface-soft: #233041;
+        --surface-soft-strong: #334155;
+        --text-color: #e5e7eb;
+        --text-muted: #94a3b8;
+        --text-strong: #f8fafc;
+        --border-color: #334155;
+        --heading-bg: #182235;
+        --heading-text: #cbd5e1;
+        --danger-soft: rgba(239, 68, 68, 0.18);
+        --shadow-color: rgba(0,0,0,0.35);
+        --shadow-soft: rgba(0,0,0,0.2);
+        --panel-overlay: rgba(17,24,39,0.82);
+        --cell-focus: #1d4f91;
+      }
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      padding: 30px 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin: 0;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 1100px;
+      background: var(--surface-color);
+      padding: 25px 30px;
+      border-radius: 20px;
+      box-shadow: 0 15px 35px var(--shadow-color);
+    }
+
+    h1 {
+      color: var(--primary-color);
+      text-align: center;
+      margin: 0 0 25px 0;
+      font-weight: 600;
+      letter-spacing: 1px;
+    }
+
+    .date-section {
+      background: var(--surface-muted);
+      padding: 12px 18px;
+      margin-top: 30px;
+      border-left: 6px solid var(--primary-color);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-weight: bold;
+      border-radius: 0 12px 12px 0;
+      transition: background 0.2s;
+    }
+
+    .date-title {
+      outline: none;
+      cursor: text;
+      flex: 1;
+      margin-right: 12px;
+      font-size: 1.05rem;
+      color: var(--text-strong);
+      padding: 4px 0;
+      border-bottom: 2px dashed transparent;
+    }
+    .date-title:focus {
+      border-bottom-color: var(--primary-color);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 5px;
+      table-layout: fixed;
+      background: var(--surface-color);
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 2px 8px var(--shadow-soft);
+    }
+
+    th, td {
+      border: 1px solid var(--border-color);
+      padding: 12px 14px;
+      text-align: left;
+      word-wrap: break-word;
+      vertical-align: middle;
+      transition: background 0.15s;
+    }
+
+    th {
+      background-color: var(--heading-bg);
+      color: var(--heading-text);
+      font-size: 0.85em;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      font-weight: 600;
+    }
+
+    td[contenteditable="true"] {
+      cursor: text;
+      background-color: var(--surface-color);
+      color: var(--text-color);
+      outline: none;
+      border-radius: 4px;
+    }
+
+    td[contenteditable="true"]:focus {
+      background-color: var(--cell-focus);
+      box-shadow: inset 0 0 0 2px var(--primary-color);
+      outline: none;
+    }
+
+    /* 隐藏模式：英文列内容不可见 */
+    .hide-english-mode .english-cell {
+      color: transparent !important;
+      background-color: var(--surface-soft);
+      user-select: none;
+      transition: all 0.2s;
+    }
+    .hide-english-mode .english-cell:focus {
+      color: transparent !important;
+      background-color: var(--surface-soft-strong);
+    }
+
+    /* 隐藏模式：中文列内容不可见 */
+    .hide-mode .meaning-cell {
+      color: transparent !important;
+      background-color: var(--surface-soft);
+      user-select: none;
+      transition: all 0.2s;
+    }
+    .hide-mode .meaning-cell:focus {
+      color: transparent !important;
+      background-color: var(--surface-soft-strong);
+    }
+
+    .delete-btn {
+      color: var(--text-muted);
+      cursor: pointer;
+      border: none;
+      background: none;
+      font-size: 17px;
+      padding: 4px 8px;
+      border-radius: 20px;
+      transition: 0.2s;
+      line-height: 1;
+    }
+    .delete-btn:hover {
+      color: var(--danger-color);
+      background-color: var(--danger-soft);
+    }
+
+    .btn-group {
+      position: sticky;
+      bottom: 25px;
+      display: flex;
+      gap: 18px;
+      justify-content: center;
+      margin-top: 35px;
+      background: var(--panel-overlay);
+      backdrop-filter: blur(12px);
+      padding: 14px 25px;
+      border-radius: 60px;
+      box-shadow: 0 8px 22px var(--shadow-color);
+      width: fit-content;
+      margin-left: auto;
+      margin-right: auto;
+      z-index: 10;
+    }
+
+    .action-btn {
+      padding: 10px 28px;
+      border: none;
+      border-radius: 30px;
+      cursor: pointer;
+      font-weight: 600;
+      color: white;
+      background-color: var(--primary-color);
+      transition: 0.25s;
+      font-size: 0.95rem;
+      letter-spacing: 0.3px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      box-shadow: 0 4px 10px rgba(74,144,226,0.3);
+    }
+
+    .toggle-btn {
+      background-color: var(--secondary-color);
+      box-shadow: 0 4px 10px rgba(243,156,18,0.3);
+    }
+
+    .action-btn:hover {
+      opacity: 0.9;
+      transform: translateY(-2px);
+      box-shadow: 0 8px 18px rgba(0,0,0,0.12);
+    }
+
+    .tips {
+      margin-top: 25px;
+      color: var(--text-muted);
+      text-align: center;
+      font-size: 0.85em;
+      background: var(--surface-soft);
+      padding: 10px 18px;
+      border-radius: 30px;
+      display: inline-block;
+      width: auto;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .tips kbd {
+      background: var(--surface-soft-strong);
+      color: var(--text-strong);
+      padding: 2px 7px;
+      border-radius: 5px;
+      font-weight: bold;
+      margin: 0 2px;
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <h1>📘 单词学习日志</h1>
+  <div id="mainContent"></div>
+
+  <div class="btn-group">
+    <button class="action-btn add-btn" onclick="addNewWord()">➕ 记新单词</button>
+    <button class="action-btn toggle-btn" onclick="toggleEnglish()">🙈 隐藏/显示英文</button>
+    <button class="action-btn toggle-btn" onclick="toggleMeanings()">👁️ 隐藏/显示中文</button>
+  </div>
+  <div style="text-align: center;">
+    <p class="tips">💡 快捷键：<kbd>Ctrl</kbd> + <kbd>↑↓←→</kbd> 移动单元格 · 在最后一行按 <kbd>Ctrl+↓</kbd> 自动添加新行</p>
+  </div>
+</div>
+
+<script>
+  (function() {
+    const mainContent = document.getElementById('mainContent');
+
+    // ---------- 数据初始化 ----------
+    window.onload = () => {
+      const savedData = JSON.parse(localStorage.getItem('dailyWordLog')) || [];
+      if (savedData.length === 0) {
+        const today = new Date().toLocaleDateString('zh-CN', { year: 'numeric', month: 'long', day: 'numeric' });
+        savedData.push({
+          dateLabel: today + " (点击编辑标题)",
+          words: [
+            { word: "Progress", sentence: "Every small step counts.", mean: "进步" },
+            { word: "Resilience", sentence: "She showed great resilience.", mean: "韧性" }
+          ]
+        });
+      }
+      renderData(savedData);
+    };
+
+    // ---------- 渲染 ----------
+    function renderData(data) {
+      mainContent.innerHTML = '';
+      data.forEach((section, sIdx) => {
+        const sectionDiv = document.createElement('div');
+        sectionDiv.className = 'section-container';
+        sectionDiv.dataset.sectionIndex = sIdx;
+
+        sectionDiv.innerHTML = `
+          <div class="date-section">
+            <div class="date-title" contenteditable="true" data-action="save">${section.dateLabel}</div>
+            <button class="delete-btn" data-action="delete-section" title="删除整组">🗑️</button>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th style="width:20%">单词</th>
+                <th style="width:45%">词根/例句</th>
+                <th style="width:25%">中文</th>
+                <th style="width:10%"></th>
+              </tr>
+            </thead>
+            <tbody>
+              ${section.words.map((w, wIdx) => `
+                <tr data-row-index="${wIdx}">
+                  <td contenteditable="true" data-col="0" class="english-cell" data-action="save">${escapeHtml(w.word)}</td>
+                  <td contenteditable="true" data-col="1" class="english-cell" data-action="save">${escapeHtml(w.sentence)}</td>
+                  <td contenteditable="true" data-col="2" class="meaning-cell" data-action="save">${escapeHtml(w.mean)}</td>
+                  <td style="text-align:center"><button class="delete-btn" data-action="delete-word" title="删除单词">✖</button></td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        `;
+        mainContent.appendChild(sectionDiv);
+      });
+
+      // 绑定事件委托 (重要：只绑定一次，避免重复监听)
+      bindMainContentEvents();
+    }
+
+    // 简单的转义，防止XSS
+    function escapeHtml(text) {
+      return String(text)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    // ---------- 全局事件绑定 (通过委托) ----------
+    function bindMainContentEvents() {
+      // 移除之前的监听器以避免重复绑定 (简单重新绑定方式，因为innerHTML会重建元素)
+      mainContent.removeEventListener('click', handleMainClick);
+      mainContent.removeEventListener('input', handleMainInput);
+      mainContent.removeEventListener('keydown', handleKeyNavigation);
+      
+      mainContent.addEventListener('click', handleMainClick);
+      mainContent.addEventListener('input', handleMainInput);
+      mainContent.addEventListener('keydown', handleKeyNavigation);
+    }
+
+    // 聚焦单元格并把光标放到末尾
+    function focusEditableCell(cell) {
+      if (!cell) return;
+      cell.focus();
+      const range = document.createRange();
+      const sel = window.getSelection();
+      range.selectNodeContents(cell);
+      range.collapse(false);
+      sel.removeAllRanges();
+      sel.addRange(range);
+    }
+
+    // 处理点击：删除按钮等
+    function handleMainClick(e) {
+      const target = e.target;
+      const action = target.getAttribute('data-action') || target.closest('[data-action]')?.getAttribute('data-action');
+      
+      if (action === 'delete-word') {
+        e.preventDefault();
+        const row = target.closest('tr');
+        if (!row) return;
+        const sectionDiv = row.closest('.section-container');
+        const sIdx = getSectionIndex(sectionDiv);
+        const wIdx = parseInt(row.getAttribute('data-row-index'), 10);
+        if (!isNaN(sIdx) && !isNaN(wIdx)) {
+          deleteWord(sIdx, wIdx);
+        }
+      } else if (action === 'delete-section') {
+        e.preventDefault();
+        const sectionDiv = target.closest('.section-container');
+        if (sectionDiv) {
+          const sIdx = getSectionIndex(sectionDiv);
+          if (!isNaN(sIdx)) {
+            deleteSection(sIdx);
+          }
+        }
+      }
+    }
+
+    // 处理输入保存
+    function handleMainInput(e) {
+      const target = e.target;
+      if (target.getAttribute('data-action') === 'save' || target.classList.contains('date-title') || target.getAttribute('contenteditable') === 'true') {
+        saveAll();
+      }
+    }
+
+    // ---------- 核心：Ctrl+方向键导航 ----------
+    function handleKeyNavigation(e) {
+      // 只在 Ctrl 键按下且方向键时触发
+      if (!e.ctrlKey || !['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
+        return;
+      }
+
+      const target = e.target;
+      // 确保当前焦点在可编辑单元格或日期标题上（但日期标题不参与表格导航，只处理td）
+      const currentTd = target.closest('td[contenteditable="true"]');
+      if (!currentTd) return; // 不是单元格则忽略
+
+      e.preventDefault(); // 阻止默认滚动等行为
+      e.stopPropagation();
+
+      const currentRow = currentTd.closest('tr');
+      const tbody = currentRow.closest('tbody');
+      const sectionDiv = currentTd.closest('.section-container');
+      const table = sectionDiv.querySelector('table');
+      
+      const allRows = Array.from(tbody.querySelectorAll('tr'));
+      const currentRowIndex = allRows.indexOf(currentRow);
+      const currentColIndex = parseInt(currentTd.getAttribute('data-col'), 10); // 0,1,2
+
+      const key = e.key;
+
+      // 辅助函数：聚焦指定单元格
+      function focusCell(row, colIndex) {
+        if (!row) return;
+        const tds = row.querySelectorAll('td[contenteditable="true"]');
+        if (tds.length > colIndex && tds[colIndex]) {
+          focusEditableCell(tds[colIndex]);
+        }
+      }
+
+      // 根据方向处理
+      if (key === 'ArrowLeft') {
+        // 向左移动列
+        if (currentColIndex > 0) {
+          focusCell(currentRow, currentColIndex - 1);
+        } else {
+          // 已经在第一列，尝试跳到上一行最后一列（更自然）
+          if (currentRowIndex > 0) {
+            const prevRow = allRows[currentRowIndex - 1];
+            const lastColIndex = prevRow.querySelectorAll('td[contenteditable="true"]').length - 1;
+            focusCell(prevRow, lastColIndex);
+          }
+        }
+      } 
+      else if (key === 'ArrowRight') {
+        const totalCols = currentRow.querySelectorAll('td[contenteditable="true"]').length;
+        if (currentColIndex < totalCols - 1) {
+          focusCell(currentRow, currentColIndex + 1);
+        } else {
+          // 最后一列，跳到下一行第一列
+          if (currentRowIndex < allRows.length - 1) {
+            focusCell(allRows[currentRowIndex + 1], 0);
+          }
+        }
+      } 
+      else if (key === 'ArrowUp') {
+        if (currentRowIndex > 0) {
+          focusCell(allRows[currentRowIndex - 1], currentColIndex);
+        }
+      } 
+      else if (key === 'ArrowDown') {
+        // 特殊处理：如果在最后一行按Ctrl+下，新建一行
+        if (currentRowIndex === allRows.length - 1) {
+          const sectionIndex = getSectionIndex(sectionDiv);
+          // 是当前section的最后一行 -> 添加新单词行
+          addWordToCurrentSection(sectionDiv);
+          // 添加后默认聚焦到新行第一列
+          setTimeout(() => {
+            const refreshedSection = mainContent.querySelectorAll('.section-container')[sectionIndex];
+            const updatedRows = refreshedSection ? refreshedSection.querySelectorAll('tbody tr') : [];
+            const newLastRow = updatedRows[updatedRows.length - 1];
+            if (newLastRow) {
+              focusCell(newLastRow, 0);
+            }
+          }, 10);
+        } else {
+          // 非最后一行，正常下移
+          focusCell(allRows[currentRowIndex + 1], currentColIndex);
+        }
+      }
+    }
+
+    // 向指定section添加空白单词行（用于快捷键新建）
+    function addWordToCurrentSection(sectionDiv) {
+      if (!sectionDiv) return;
+      const data = getAllData();
+      const sIdx = getSectionIndex(sectionDiv);
+      if (sIdx === undefined || !data[sIdx]) return;
+      
+      data[sIdx].words.push({ word: "", sentence: "", mean: "" });
+      // 重新渲染并保存（保持焦点由外部处理）
+      renderData(data);
+      saveAll();
+      // 重新聚焦的逻辑在调用处通过setTimeout处理，因为渲染会重建DOM
+    }
+
+    // 获取section在数据中的索引
+    function getSectionIndex(sectionDiv) {
+      const sections = Array.from(mainContent.querySelectorAll('.section-container'));
+      return sections.indexOf(sectionDiv);
+    }
+
+    // ---------- 数据操作 ----------
+    function getAllData() {
+      const sections = document.querySelectorAll('.section-container');
+      const data = [];
+      sections.forEach(sec => {
+        const dateLabel = sec.querySelector('.date-title')?.innerText || '';
+        const rows = sec.querySelectorAll('tbody tr');
+        const words = [];
+        rows.forEach(row => {
+          const tds = row.querySelectorAll('td[contenteditable="true"]');
+          if (tds.length >= 3) {
+            words.push({
+              word: tds[0].innerText,
+              sentence: tds[1].innerText,
+              mean: tds[2].innerText
+            });
+          }
+        });
+        data.push({ dateLabel, words });
+      });
+      return data;
+    }
+
+    function saveAll() {
+      localStorage.setItem('dailyWordLog', JSON.stringify(getAllData()));
+    }
+
+    window.addNewWord = function() {
+      const data = getAllData();
+      const today = new Date().toLocaleDateString('zh-CN', { year: 'numeric', month: 'long', day: 'numeric' });
+      
+      // 检查第一个分组是否包含今天日期（简单判断）
+      if (data.length === 0 || !data[0].dateLabel.includes(today)) {
+        data.unshift({
+          dateLabel: today + " - 新的学习",
+          words: [{ word: "", sentence: "", mean: "" }]
+        });
+      } else {
+        data[0].words.push({ word: "", sentence: "", mean: "" });
+      }
+      renderData(data);
+      saveAll();
+      // 聚焦到新添加的单元格（第一个分组的最后一行第一列）
+      setTimeout(() => {
+        const firstSection = mainContent.querySelector('.section-container');
+        if (firstSection) {
+          const rows = firstSection.querySelectorAll('tbody tr');
+          if (rows.length > 0) {
+            const lastRow = rows[rows.length - 1];
+            const firstTd = lastRow.querySelector('td[contenteditable="true"]');
+            focusEditableCell(firstTd);
+          }
+        }
+      }, 20);
+    };
+
+    window.deleteWord = function(sIdx, wIdx) {
+      const data = getAllData();
+      if (!data[sIdx]) return;
+      data[sIdx].words.splice(wIdx, 1);
+      if (data[sIdx].words.length === 0) {
+        data.splice(sIdx, 1);
+      }
+      renderData(data);
+      saveAll();
+    };
+
+    window.deleteSection = function(sIdx) {
+      if (confirm('确定要删除这一整天的单词吗？')) {
+        const data = getAllData();
+        data.splice(sIdx, 1);
+        renderData(data);
+        saveAll();
+      }
+    };
+
+    window.toggleMeanings = function() {
+      mainContent.classList.toggle('hide-mode');
+    };
+
+    window.toggleEnglish = function() {
+      mainContent.classList.toggle('hide-english-mode');
+    };
+
+    // 暴露给全局以便按钮调用
+    window.addNewWord = addNewWord;
+    window.deleteWord = deleteWord;
+    window.deleteSection = deleteSection;
+    window.toggleEnglish = toggleEnglish;
+    window.toggleMeanings = toggleMeanings;
+
+  })();
+</script>
+</body>
+</html>
